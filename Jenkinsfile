@@ -52,10 +52,10 @@ pipeline {
                     fi
 
                     export JAVA_HOME=$(pwd)/jdk-21
+                    export SONAR_SCANNER_JAVA_HOME=$(pwd)/jdk-21
                     export PATH=$JAVA_HOME/bin:$PATH
-                    java -version
 
-                    ./sonar-scanner/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN
+                    ./sonar-scanner/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.scanner.skipJreProvisioning=true
                 '''
             }
         }
