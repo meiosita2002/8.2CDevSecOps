@@ -52,13 +52,13 @@ pipeline {
                         tar -xzf jdk21.tar.gz -C jdk-21 --strip-components=1
                     fi
 
-                    JAVA21=$(pwd)/jdk-21/bin/java
-                    $JAVA21 -version
+                    export JAVA_HOME=$(pwd)/jdk-21
+                    export SONAR_SCANNER_JAVA_HOME=$(pwd)/jdk-21
+                    export PATH=$JAVA_HOME/bin:$PATH
 
-                    ./sonar-scanner/bin/sonar-scanner \
-                        -Dsonar.login=$SONAR_TOKEN \
-                        -Dsonar.scanner.skipJreProvisioning=true \
-                        -Dsonar.scanner.javaExePath=$JAVA21
+                    java -version
+
+                    ./sonar-scanner/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.scanner.skipJreProvisioning=true
                 '''
             }
         }
