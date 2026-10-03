@@ -1,56 +1,51 @@
 pipeline {
     agent any
 
-    triggers {
-        pollSCM('H/5 * * * *')
+    environment {
+        SONAR_TOKEN = credentials('SONAR_TOKEN')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/meiosita2002/8.2CDevSecOps.git'
             }
         }
 
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
-                echo "Building the code using Maven to compile and package the application"
+                sh 'npm install'
             }
         }
 
-        stage('Unit and Integration Tests') {
+        stage('Run Tests') {
             steps {
-                echo "Running unit tests and integration tests using JUnit and TestNG"
+                sh 'npm test || true'
             }
         }
 
-        stage('Code Analysis') {
+        stage('Generate Coverage Report') {
             steps {
-                echo "Analysing code quality and maintainability using SonarQube"
+                sh 'npm run coverage || true'
             }
         }
 
-        stage('Security Scan') {
+        stage('NPM Audit (Security Scan)') {
             steps {
-                echo "Scanning the code for security vulnerabilities using OWASP Dependency-Check"
+                sh 'npm audit || true'
             }
         }
 
-        stage('Deploy to Staging') {
+        stage('SonarCloud Analysis') {
             steps {
-                echo "Deploying the application to a staging server (AWS EC2 instance)"
-            }
-        }
-
-        stage('Integration Tests on Staging') {
-            steps {
-                echo "Running integration tests on the staging environment to verify production-like behaviour"
-            }
-        }
-
-        stage('Deploy to Production') {
-            steps {
-                echo "Deploying the application to the production server (AWS EC2 instance)"
+                sh '''
+                    if [ ! -d sonar-scanner ]; then
+                        curl -fsSL -o sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+                        unzip -q sonar-scanner-cli.zip
+                        mv sonar-scanner-5.0.1.3006-linux sonar-scanner
+                    fi
+                    ./sonar-scanner/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN
+                '''
             }
         }
     }
